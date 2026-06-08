@@ -1,5 +1,7 @@
 # Transaction Created Count
 
+Transaction Created Count was created for two practical needs: to give a quick overview of how many transactions each client has consumed, and to handle UTC-to-book-timezone correction when deciding which month a transaction belongs to.
+
 Transaction Created Count shows how many non-trashed transactions were created during the previous completed calendar month across all Bkper books the signed-in user can access.
 
 The app is read-only. It reads book and transaction information to build the report, but it does not create, update, delete, check, uncheck, or trash anything in your books.
