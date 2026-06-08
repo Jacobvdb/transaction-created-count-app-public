@@ -210,6 +210,24 @@ describe('createdAt previous-month counting', () => {
         );
     });
 
+    test('neutralizes spreadsheet formulas in CSV text fields', () => {
+        const csv = buildBookCountCsv([
+            {
+                bookId: '=book-id',
+                bookName: '+Main Book',
+                timeZone: 'UTC',
+                periodLabel: '-April 2026',
+                count: 12,
+                status: '@Counted',
+            },
+        ]);
+
+        expect(csv).toBe(
+            'Book ID,Book,Timezone,Period,Count,Status\r\n' +
+                "'=book-id,'+Main Book,UTC,'-April 2026,12,'@Counted",
+        );
+    });
+
     test('limits concurrent work and preserves result order', async () => {
         let active = 0;
         let maxActive = 0;
