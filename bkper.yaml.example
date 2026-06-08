@@ -1,0 +1,25 @@
+id: your-transaction-created-count-app
+name: Transaction Created Count
+description: Counts non-trashed transactions created during the previous completed calendar month across all accessible books, using each book timezone.
+
+logoUrl: https://your-app.bkper.app/images/logo-light.svg
+logoUrlDark: https://your-app.bkper.app/images/logo-dark.svg
+
+website: https://your-app.bkper.app
+ownerName: Your Name or Organization
+ownerWebsite: https://example.com
+
+# Use Bkper usernames and/or domain wildcards. Replace these before syncing.
+developers: your-bkper-username
+users: your-bkper-username
+
+menuText: Count created transactions
+menuUrl: https://your-app.bkper.app?bookId=${book.id}
+menuUrlDev: http://localhost:5173?bookId=${book.id}
+menuPopupWidth: 820
+menuPopupHeight: 640
+
+deployment:
+    server: server/src/index.ts
+    client: client
+    compatibility_date: '2026-01-28'
