@@ -175,6 +175,7 @@ function renderBookDetailRow(detailState: BookDetailState): string {
                 <dl class="detail-grid">
                     ${renderDetailMetric('Total transactions', detailState.details.totalTransactions, 'Includes trashed transactions')}
                     ${renderDetailMetric('Non-trashed transactions', detailState.details.nonTrashedTransactions)}
+                    ${renderDetailMetric('Total unchecked transactions', detailState.details.totalUncheckedTransactions)}
                     ${renderDetailMetric('Total trashed transactions', detailState.details.totalTrashedTransactions)}
                     ${renderDetailMetric('Non-trashed created last month', detailState.details.nonTrashedCreatedLastMonth)}
                     ${renderDetailMetric('Trashed created last month', detailState.details.trashedCreatedLastMonth)}

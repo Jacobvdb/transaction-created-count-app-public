@@ -67,6 +67,7 @@ export interface BookTransactionDetails {
     totalTransactions: number;
     nonTrashedTransactions: number;
     totalTrashedTransactions: number;
+    totalUncheckedTransactions: number;
     nonTrashedCreatedLastMonth: number;
     trashedCreatedLastMonth: number;
 }
@@ -188,12 +189,17 @@ export async function countCreatedTransactionBookDetails(
     const trashedCoreQuery = formatTrashedQuery(queryPlan.coreQuery);
     const trashedBoundaryQueries =
         queryPlan.boundaryQueries.map(formatTrashedQuery);
-    const [nonTrashedTransactions, totalTrashedTransactions, trashedCoreCount] =
-        await Promise.all([
-            book.countTransactions(''),
-            book.countTransactions('is:trashed'),
-            book.countTransactions(trashedCoreQuery),
-        ]);
+    const [
+        nonTrashedTransactions,
+        totalTrashedTransactions,
+        totalUncheckedTransactions,
+        trashedCoreCount,
+    ] = await Promise.all([
+        book.countTransactions(''),
+        book.countTransactions('is:trashed'),
+        book.countTransactions('is:unchecked'),
+        book.countTransactions(trashedCoreQuery),
+    ]);
     const trashedBoundaryTransactions = await listBoundaryTransactions(
         book,
         trashedBoundaryQueries,
@@ -208,6 +214,9 @@ export async function countCreatedTransactionBookDetails(
         ),
         totalTrashedTransactions: normalizeTransactionCount(
             totalTrashedTransactions,
+        ),
+        totalUncheckedTransactions: normalizeTransactionCount(
+            totalUncheckedTransactions,
         ),
         nonTrashedCreatedLastMonth,
         trashedCreatedLastMonth:

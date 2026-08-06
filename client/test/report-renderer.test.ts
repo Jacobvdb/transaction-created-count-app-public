@@ -50,6 +50,7 @@ describe('report renderer', () => {
                             totalTransactions: 30,
                             nonTrashedTransactions: 25,
                             totalTrashedTransactions: 5,
+                            totalUncheckedTransactions: 10,
                             nonTrashedCreatedLastMonth: 12,
                             trashedCreatedLastMonth: 4,
                         },
@@ -61,6 +62,8 @@ describe('report renderer', () => {
         expect(html).toContain('Hide details');
         expect(html).toContain('Total transactions');
         expect(html).toContain('30');
+        expect(html).toContain('Total unchecked transactions');
+        expect(html).toContain('10');
         expect(html).toContain('Trashed created last month');
         expect(html).toContain('4');
     });

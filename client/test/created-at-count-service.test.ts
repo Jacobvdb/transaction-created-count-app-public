@@ -248,6 +248,7 @@ describe('createdAt count service', () => {
             new Map([
                 ['', '25'],
                 ['is:trashed', '5'],
+                ['is:unchecked', '10'],
                 [trashedCoreQuery, '2'],
             ]),
             new Map([
@@ -287,10 +288,16 @@ describe('createdAt count service', () => {
             totalTransactions: 30,
             nonTrashedTransactions: 25,
             totalTrashedTransactions: 5,
+            totalUncheckedTransactions: 10,
             nonTrashedCreatedLastMonth: 12,
             trashedCreatedLastMonth: 4,
         });
-        expect(book.countQueries).toEqual(['', 'is:trashed', trashedCoreQuery]);
+        expect(book.countQueries).toEqual([
+            '',
+            'is:trashed',
+            'is:unchecked',
+            trashedCoreQuery,
+        ]);
         expect(book.listCalls).toEqual([
             {
                 query: trashedStartBoundaryQuery,
