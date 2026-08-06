@@ -43,6 +43,8 @@ class FakeTransaction implements CreatedTransactionsTransaction {
     constructor(
         private readonly createdAt: Date,
         private readonly trashed: boolean = false,
+        private readonly posted: boolean = true,
+        private readonly checked: boolean = false,
     ) {}
 
     getCreatedAt(): Date {
@@ -51,6 +53,14 @@ class FakeTransaction implements CreatedTransactionsTransaction {
 
     isTrashed(): boolean {
         return this.trashed;
+    }
+
+    isPosted(): boolean {
+        return this.posted;
+    }
+
+    isChecked(): boolean {
+        return this.checked;
     }
 }
 
@@ -235,23 +245,49 @@ describe('createdAt count service', () => {
         ]);
     });
 
-    test('loads book details with trashed transaction counts', async () => {
+    test('loads book details with month-specific status breakdowns', async () => {
         const startBoundaryQuery =
             'after:2026-03-30 before:2026-04-02 using:createdAt';
         const coreQuery = 'after:2026-04-02 before:2026-04-30 using:createdAt';
         const endBoundaryQuery =
             'after:2026-04-30 before:2026-05-03 using:createdAt';
+        const draftCoreQuery = `is:draft ${coreQuery}`;
+        const checkedCoreQuery = `is:checked ${coreQuery}`;
+        const uncheckedCoreQuery = `is:unchecked ${coreQuery}`;
         const trashedCoreQuery = `is:trashed ${coreQuery}`;
         const trashedStartBoundaryQuery = `is:trashed ${startBoundaryQuery}`;
         const trashedEndBoundaryQuery = `is:trashed ${endBoundaryQuery}`;
+
         const book = new FakeBook(
             new Map([
-                ['', '25'],
-                ['is:trashed', '5'],
-                ['is:unchecked', '10'],
+                [draftCoreQuery, '1'],
+                [checkedCoreQuery, '8'],
+                [uncheckedCoreQuery, '1'],
                 [trashedCoreQuery, '2'],
             ]),
             new Map([
+                [
+                    `${startBoundaryQuery}|`,
+                    new FakeTransactionPage([
+                        new FakeTransaction(
+                            new Date('2026-04-01T03:30:00.000Z'),
+                            false,
+                            true,
+                            true,
+                        ),
+                    ]),
+                ],
+                [
+                    `${endBoundaryQuery}|`,
+                    new FakeTransactionPage([
+                        new FakeTransaction(
+                            new Date('2026-04-30T22:00:00.000Z'),
+                            false,
+                            true,
+                            false,
+                        ),
+                    ]),
+                ],
                 [
                     `${trashedStartBoundaryQuery}|`,
                     new FakeTransactionPage([
@@ -281,30 +317,15 @@ describe('createdAt count service', () => {
         const details = await countCreatedTransactionBookDetails(
             book,
             new Date('2026-05-05T12:00:00.000Z'),
-            12,
         );
 
         expect(details).toEqual({
-            totalTransactions: 30,
-            nonTrashedTransactions: 25,
-            totalTrashedTransactions: 5,
-            totalUncheckedTransactions: 10,
-            nonTrashedCreatedLastMonth: 12,
+            totalCreatedLastMonth: 16,
+            activeCreatedLastMonth: 12,
             trashedCreatedLastMonth: 4,
+            draftCreatedLastMonth: 1,
+            checkedCreatedLastMonth: 9,
+            uncheckedCreatedLastMonth: 2,
         });
-        expect(book.countQueries).toEqual([
-            '',
-            'is:trashed',
-            'is:unchecked',
-            trashedCoreQuery,
-        ]);
-        expect(book.listCalls).toEqual([
-            {
-                query: trashedStartBoundaryQuery,
-                limit: 1000,
-                cursor: undefined,
-            },
-            { query: trashedEndBoundaryQuery, limit: 1000, cursor: undefined },
-        ]);
     });
 });

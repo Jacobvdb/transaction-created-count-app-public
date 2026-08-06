@@ -1,7 +1,7 @@
 import {
     buildCreatedAtOptimizedQueryPlan,
     countOptimizedCreatedTransactions,
-    countTrashedTransactionsCreatedInPreviousMonth,
+    countTransactionsCreatedInPreviousMonthByStatus,
     formatDateTimeInTimeZone,
     formatUnknownError,
     getPreviousMonthPeriod,
@@ -37,6 +37,8 @@ export interface CreatedTransactionsPage {
 export interface CreatedTransactionsTransaction {
     getCreatedAt(): Date;
     isTrashed(): boolean | undefined;
+    isPosted?(): boolean | undefined;
+    isChecked?(): boolean | undefined;
 }
 
 export interface SuccessfulBookCountResult {
@@ -64,12 +66,12 @@ export interface FailedBookCountResult {
 export type BookCountResult = SuccessfulBookCountResult | FailedBookCountResult;
 
 export interface BookTransactionDetails {
-    totalTransactions: number;
-    nonTrashedTransactions: number;
-    totalTrashedTransactions: number;
-    totalUncheckedTransactions: number;
-    nonTrashedCreatedLastMonth: number;
+    totalCreatedLastMonth: number;
+    activeCreatedLastMonth: number;
     trashedCreatedLastMonth: number;
+    draftCreatedLastMonth: number;
+    checkedCreatedLastMonth: number;
+    uncheckedCreatedLastMonth: number;
 }
 
 export function isSuccessfulBookCountResult(
@@ -178,7 +180,6 @@ export async function countCreatedTransactionsForBook(
 export async function countCreatedTransactionBookDetails(
     book: CreatedTransactionsBook,
     now: Date,
-    nonTrashedCreatedLastMonth: number,
 ): Promise<BookTransactionDetails> {
     const bookTimeZone: BookTimeZone = {
         timeZone: book.getTimeZone(),
@@ -186,46 +187,97 @@ export async function countCreatedTransactionBookDetails(
     };
     const period = getPreviousMonthPeriod(now, bookTimeZone);
     const queryPlan = buildCreatedAtOptimizedQueryPlan(period);
-    const trashedCoreQuery = formatTrashedQuery(queryPlan.coreQuery);
-    const trashedBoundaryQueries =
-        queryPlan.boundaryQueries.map(formatTrashedQuery);
-    const [
-        nonTrashedTransactions,
-        totalTrashedTransactions,
-        totalUncheckedTransactions,
-        trashedCoreCount,
-    ] = await Promise.all([
-        book.countTransactions(''),
-        book.countTransactions('is:trashed'),
-        book.countTransactions('is:unchecked'),
-        book.countTransactions(trashedCoreQuery),
-    ]);
-    const trashedBoundaryTransactions = await listBoundaryTransactions(
-        book,
-        trashedBoundaryQueries,
+
+    const draftCoreQuery = formatStatusQuery('is:draft', queryPlan.coreQuery);
+    const checkedCoreQuery = formatStatusQuery(
+        'is:checked',
+        queryPlan.coreQuery,
+    );
+    const uncheckedCoreQuery = formatStatusQuery(
+        'is:unchecked',
+        queryPlan.coreQuery,
+    );
+    const trashedCoreQuery = formatStatusQuery(
+        'is:trashed',
+        queryPlan.coreQuery,
+    );
+    const trashedBoundaryQueries = queryPlan.boundaryQueries.map((query) =>
+        formatStatusQuery('is:trashed', query),
     );
 
+    const [
+        draftCoreCount,
+        checkedCoreCount,
+        uncheckedCoreCount,
+        trashedCoreCount,
+    ] = await Promise.all([
+        book.countTransactions(draftCoreQuery),
+        book.countTransactions(checkedCoreQuery),
+        book.countTransactions(uncheckedCoreQuery),
+        book.countTransactions(trashedCoreQuery),
+    ]);
+
+    const [boundaryTransactions, trashedBoundaryTransactions] =
+        await Promise.all([
+            listBoundaryTransactions(book, queryPlan.boundaryQueries),
+            listBoundaryTransactions(book, trashedBoundaryQueries),
+        ]);
+
+    const countableBoundaryTransactions =
+        boundaryTransactions.map(toCountableTransaction);
+    const countableTrashedBoundaryTransactions =
+        trashedBoundaryTransactions.map(toCountableTransaction);
+
+    const draftBoundaryCount = countTransactionsCreatedInPreviousMonthByStatus(
+        countableBoundaryTransactions,
+        now,
+        bookTimeZone,
+        'draft',
+    );
+    const checkedBoundaryCount =
+        countTransactionsCreatedInPreviousMonthByStatus(
+            countableBoundaryTransactions,
+            now,
+            bookTimeZone,
+            'checked',
+        );
+    const uncheckedBoundaryCount =
+        countTransactionsCreatedInPreviousMonthByStatus(
+            countableBoundaryTransactions,
+            now,
+            bookTimeZone,
+            'unchecked',
+        );
+    const trashedBoundaryCount =
+        countTransactionsCreatedInPreviousMonthByStatus(
+            countableTrashedBoundaryTransactions,
+            now,
+            bookTimeZone,
+            'trashed',
+        );
+
+    const draftCreatedLastMonth =
+        normalizeTransactionCount(draftCoreCount) + draftBoundaryCount;
+    const checkedCreatedLastMonth =
+        normalizeTransactionCount(checkedCoreCount) + checkedBoundaryCount;
+    const uncheckedCreatedLastMonth =
+        normalizeTransactionCount(uncheckedCoreCount) + uncheckedBoundaryCount;
+    const activeCreatedLastMonth =
+        draftCreatedLastMonth +
+        checkedCreatedLastMonth +
+        uncheckedCreatedLastMonth;
+    const trashedCreatedLastMonth =
+        normalizeTransactionCount(trashedCoreCount) + trashedBoundaryCount;
+    const totalCreatedLastMonth =
+        activeCreatedLastMonth + trashedCreatedLastMonth;
+
     return {
-        totalTransactions: normalizeTransactionCount(
-            book.getTotalTransactions(),
-        ),
-        nonTrashedTransactions: normalizeTransactionCount(
-            nonTrashedTransactions,
-        ),
-        totalTrashedTransactions: normalizeTransactionCount(
-            totalTrashedTransactions,
-        ),
-        totalUncheckedTransactions: normalizeTransactionCount(
-            totalUncheckedTransactions,
-        ),
-        nonTrashedCreatedLastMonth,
-        trashedCreatedLastMonth:
-            normalizeTransactionCount(trashedCoreCount) +
-            countTrashedTransactionsCreatedInPreviousMonth(
-                trashedBoundaryTransactions.map(toCountableTransaction),
-                now,
-                bookTimeZone,
-            ),
+        totalCreatedLastMonth,
+        activeCreatedLastMonth,
+        trashedCreatedLastMonth,
+        draftCreatedLastMonth,
+        checkedCreatedLastMonth,
+        uncheckedCreatedLastMonth,
     };
 }
 
@@ -262,8 +314,8 @@ async function listAllTransactions(
     return transactions;
 }
 
-function formatTrashedQuery(query: string): string {
-    return `is:trashed ${query}`;
+function formatStatusQuery(status: string, query: string): string {
+    return `${status} ${query}`;
 }
 
 function toCountableTransaction(
@@ -272,5 +324,7 @@ function toCountableTransaction(
     return {
         createdAt: transaction.getCreatedAt(),
         trashed: transaction.isTrashed() ?? false,
+        posted: transaction.isPosted?.() ?? true,
+        checked: transaction.isChecked?.() ?? false,
     };
 }

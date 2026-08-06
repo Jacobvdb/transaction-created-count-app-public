@@ -40,7 +40,6 @@ export interface ReportControllerOptions {
     countBookDetails?: (
         book: CreatedTransactionsBook,
         now: Date,
-        nonTrashedCreatedLastMonth: number,
     ) => Promise<BookTransactionDetails>;
     getNow?: () => Date;
 }
@@ -172,11 +171,7 @@ export class ReportController {
         this.renderReport();
 
         try {
-            const details = await this.countBookDetails(
-                book,
-                now,
-                result.count,
-            );
+            const details = await this.countBookDetails(book, now);
 
             if (this.detailStates.get(bookId)?.status === 'loading') {
                 this.detailStates.set(bookId, { status: 'loaded', details });

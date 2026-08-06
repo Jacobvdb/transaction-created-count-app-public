@@ -1,6 +1,8 @@
 export interface CountableTransaction {
     createdAt: Date;
     trashed: boolean;
+    posted?: boolean;
+    checked?: boolean;
 }
 
 export interface PreviousMonthPeriod {
@@ -100,6 +102,38 @@ export function countTrashedTransactionsCreatedInPreviousMonth(
         timeZoneInput,
         (transaction) => transaction.trashed,
     );
+}
+
+export function countTransactionsCreatedInPreviousMonthByStatus(
+    transactions: CountableTransaction[],
+    now: Date,
+    timeZoneInput: TimeZoneInput,
+    status: 'draft' | 'checked' | 'unchecked' | 'trashed',
+): number {
+    return countTransactionsCreatedInPreviousMonthByPredicate(
+        transactions,
+        now,
+        timeZoneInput,
+        (transaction) => getTransactionStatus(transaction) === status,
+    );
+}
+
+export function getTransactionStatus(
+    transaction: CountableTransaction,
+): 'draft' | 'checked' | 'unchecked' | 'trashed' {
+    if (transaction.trashed) {
+        return 'trashed';
+    }
+
+    if (transaction.posted === false) {
+        return 'draft';
+    }
+
+    if (transaction.checked === true) {
+        return 'checked';
+    }
+
+    return 'unchecked';
 }
 
 function countTransactionsCreatedInPreviousMonthByPredicate(

@@ -169,16 +169,21 @@ function renderBookDetailRow(detailState: BookDetailState): string {
         `;
     }
 
+    const { details } = detailState;
+
     return `
         <tr class="detail-row">
             <td colspan="4">
                 <dl class="detail-grid">
-                    ${renderDetailMetric('Total transactions', detailState.details.totalTransactions, 'Includes trashed transactions')}
-                    ${renderDetailMetric('Non-trashed transactions', detailState.details.nonTrashedTransactions)}
-                    ${renderDetailMetric('Total unchecked transactions', detailState.details.totalUncheckedTransactions)}
-                    ${renderDetailMetric('Total trashed transactions', detailState.details.totalTrashedTransactions)}
-                    ${renderDetailMetric('Non-trashed created last month', detailState.details.nonTrashedCreatedLastMonth)}
-                    ${renderDetailMetric('Trashed created last month', detailState.details.trashedCreatedLastMonth)}
+                    ${renderDetailMetric('Total created last month', details.totalCreatedLastMonth, 'Active + trashed')}
+                    ${renderDetailMetric('Active created last month', details.activeCreatedLastMonth)}
+                    ${renderDetailMetric('Trashed created last month', details.trashedCreatedLastMonth)}
+                </dl>
+                <div class="detail-section-header">Active transactions breakdown</div>
+                <dl class="detail-grid">
+                    ${renderDetailMetric('Draft created last month', details.draftCreatedLastMonth)}
+                    ${renderDetailMetric('Checked created last month', details.checkedCreatedLastMonth)}
+                    ${renderDetailMetric('Unchecked created last month', details.uncheckedCreatedLastMonth)}
                 </dl>
             </td>
         </tr>

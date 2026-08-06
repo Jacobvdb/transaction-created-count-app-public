@@ -47,12 +47,12 @@ describe('report renderer', () => {
                     {
                         status: 'loaded',
                         details: {
-                            totalTransactions: 30,
-                            nonTrashedTransactions: 25,
-                            totalTrashedTransactions: 5,
-                            totalUncheckedTransactions: 10,
-                            nonTrashedCreatedLastMonth: 12,
+                            totalCreatedLastMonth: 16,
+                            activeCreatedLastMonth: 12,
                             trashedCreatedLastMonth: 4,
+                            draftCreatedLastMonth: 1,
+                            checkedCreatedLastMonth: 9,
+                            uncheckedCreatedLastMonth: 2,
                         },
                     },
                 ],
@@ -60,11 +60,16 @@ describe('report renderer', () => {
         );
 
         expect(html).toContain('Hide details');
-        expect(html).toContain('Total transactions');
-        expect(html).toContain('30');
-        expect(html).toContain('Total unchecked transactions');
-        expect(html).toContain('10');
-        expect(html).toContain('Trashed created last month');
-        expect(html).toContain('4');
+        expect(html).toContain('Total created last month');
+        expect(html).toContain('16');
+        expect(html).toContain('Active created last month');
+        expect(html).toContain('12');
+        expect(html).toContain('Active transactions breakdown');
+        expect(html).toContain('Draft created last month');
+        expect(html).toContain('1');
+        expect(html).toContain('Checked created last month');
+        expect(html).toContain('9');
+        expect(html).toContain('Unchecked created last month');
+        expect(html).toContain('2');
     });
 });
