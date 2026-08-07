@@ -185,6 +185,18 @@ function renderBookDetailRow(detailState: BookDetailState): string {
                     ${renderDetailMetric('Checked created last month', details.checkedCreatedLastMonth)}
                     ${renderDetailMetric('Unchecked created last month', details.uncheckedCreatedLastMonth)}
                 </dl>
+                <div class="detail-section-header detail-section-main">All-time book totals</div>
+                <dl class="detail-grid">
+                    ${renderDetailMetric('Total book transactions', details.totalBookTransactions, 'Active + trashed')}
+                    ${renderDetailMetric('Active book transactions', details.activeBookTransactions)}
+                    ${renderDetailMetric('Trashed book transactions', details.trashedBookTransactions)}
+                </dl>
+                <div class="detail-section-header">Active book transactions breakdown</div>
+                <dl class="detail-grid">
+                    ${renderDetailMetric('Draft book transactions', details.draftBookTransactions)}
+                    ${renderDetailMetric('Checked book transactions', details.checkedBookTransactions)}
+                    ${renderDetailMetric('Unchecked book transactions', details.uncheckedBookTransactions)}
+                </dl>
             </td>
         </tr>
     `;

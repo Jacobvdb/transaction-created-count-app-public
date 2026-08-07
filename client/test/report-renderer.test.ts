@@ -53,6 +53,12 @@ describe('report renderer', () => {
                             draftCreatedLastMonth: 1,
                             checkedCreatedLastMonth: 9,
                             uncheckedCreatedLastMonth: 2,
+                            totalBookTransactions: 120,
+                            activeBookTransactions: 100,
+                            trashedBookTransactions: 20,
+                            draftBookTransactions: 10,
+                            checkedBookTransactions: 70,
+                            uncheckedBookTransactions: 20,
                         },
                     },
                 ],
@@ -71,5 +77,12 @@ describe('report renderer', () => {
         expect(html).toContain('9');
         expect(html).toContain('Unchecked created last month');
         expect(html).toContain('2');
+        expect(html).toContain('All-time book totals');
+        expect(html).toContain('Total book transactions');
+        expect(html).toContain('120');
+        expect(html).toContain('Active book transactions');
+        expect(html).toContain('100');
+        expect(html).toContain('Draft book transactions');
+        expect(html).toContain('10');
     });
 });

@@ -72,6 +72,12 @@ export interface BookTransactionDetails {
     draftCreatedLastMonth: number;
     checkedCreatedLastMonth: number;
     uncheckedCreatedLastMonth: number;
+    totalBookTransactions: number;
+    activeBookTransactions: number;
+    trashedBookTransactions: number;
+    draftBookTransactions: number;
+    checkedBookTransactions: number;
+    uncheckedBookTransactions: number;
 }
 
 export function isSuccessfulBookCountResult(
@@ -210,11 +216,21 @@ export async function countCreatedTransactionBookDetails(
         checkedCoreCount,
         uncheckedCoreCount,
         trashedCoreCount,
+        activeBookCount,
+        trashedBookCount,
+        draftBookCount,
+        checkedBookCount,
+        uncheckedBookCount,
     ] = await Promise.all([
         book.countTransactions(draftCoreQuery),
         book.countTransactions(checkedCoreQuery),
         book.countTransactions(uncheckedCoreQuery),
         book.countTransactions(trashedCoreQuery),
+        book.countTransactions(''),
+        book.countTransactions('is:trashed'),
+        book.countTransactions('is:draft'),
+        book.countTransactions('is:checked'),
+        book.countTransactions('is:unchecked'),
     ]);
 
     const [boundaryTransactions, trashedBoundaryTransactions] =
@@ -271,6 +287,15 @@ export async function countCreatedTransactionBookDetails(
     const totalCreatedLastMonth =
         activeCreatedLastMonth + trashedCreatedLastMonth;
 
+    const activeBookTransactions = normalizeTransactionCount(activeBookCount);
+    const trashedBookTransactions = normalizeTransactionCount(trashedBookCount);
+    const totalBookTransactions =
+        activeBookTransactions + trashedBookTransactions;
+    const draftBookTransactions = normalizeTransactionCount(draftBookCount);
+    const checkedBookTransactions = normalizeTransactionCount(checkedBookCount);
+    const uncheckedBookTransactions =
+        normalizeTransactionCount(uncheckedBookCount);
+
     return {
         totalCreatedLastMonth,
         activeCreatedLastMonth,
@@ -278,6 +303,12 @@ export async function countCreatedTransactionBookDetails(
         draftCreatedLastMonth,
         checkedCreatedLastMonth,
         uncheckedCreatedLastMonth,
+        totalBookTransactions,
+        activeBookTransactions,
+        trashedBookTransactions,
+        draftBookTransactions,
+        checkedBookTransactions,
+        uncheckedBookTransactions,
     };
 }
 

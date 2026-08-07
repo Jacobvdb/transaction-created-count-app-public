@@ -264,6 +264,11 @@ describe('createdAt count service', () => {
                 [checkedCoreQuery, '8'],
                 [uncheckedCoreQuery, '1'],
                 [trashedCoreQuery, '2'],
+                ['', '100'],
+                ['is:trashed', '20'],
+                ['is:draft', '10'],
+                ['is:checked', '70'],
+                ['is:unchecked', '20'],
             ]),
             new Map([
                 [
@@ -326,6 +331,12 @@ describe('createdAt count service', () => {
             draftCreatedLastMonth: 1,
             checkedCreatedLastMonth: 9,
             uncheckedCreatedLastMonth: 2,
+            totalBookTransactions: 120,
+            activeBookTransactions: 100,
+            trashedBookTransactions: 20,
+            draftBookTransactions: 10,
+            checkedBookTransactions: 70,
+            uncheckedBookTransactions: 20,
         });
     });
 });
